@@ -1,6 +1,7 @@
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from financial_indicators import load_indicators
+from historical_prices import load_prices
 from os import environ
 
 
@@ -24,6 +25,11 @@ def root():
     return 'Stock Projection Service is running'
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return 'Not Found (404)', 404
+
+
 @app.route('/indicators', methods=['GET'])
 def indicators():
     global indicators_list, day
@@ -32,6 +38,14 @@ def indicators():
         indicators_list, day = reload_indicators()
 
     return jsonify(indicators_list)
+
+
+@app.route('/prices', methods=['GET'])
+def prices():
+    query_parameters = request.args
+    ticker = query_parameters.get('ticker')
+
+    return load_prices(ticker) if ticker else page_not_found(404)
 
 
 if __name__ == '__main__':
