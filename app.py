@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import Flask, jsonify
 from financial_indicators import load_indicators
+from os import environ
 
 
 def reload_indicators():
@@ -34,4 +35,5 @@ def indicators():
 
 
 if __name__ == '__main__':
-    app.run()
+    port = int(environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)

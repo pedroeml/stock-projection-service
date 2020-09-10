@@ -4,11 +4,25 @@ from collections import OrderedDict
 from decimal import Decimal
 from http import cookiejar
 from lxml.html import fragment_fromstring
+from os import environ
 from urllib import request, parse
 
-URL = 'http://www.fundamentus.com.br/resultado.php'
+
+def get_url():
+    env = environ.get('FLASK_ENV', 'development')
+
+    if env == 'development':
+        url = 'https://www.fundamentus.com.br/resultado.php'
+    else:
+        phproxy = 'https://cin.ufpe.br/~bifm/tools/proxy/index.php'
+        url = phproxy + '?q=https%3A%2F%2Fwww.fundamentus.com.br%2Fresultado.php&hl=180'
+
+    return url
+
+
+URL = get_url()
 HEADERS = [
-    ('User-agent', 'Mozilla/5.0 (Windows; U; Windows NT 6.1; rv:2.2) Gecko/20110201'),
+    ('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'),
     ('Accept', 'text/html, text/plain, text/css, text/sgml, */*;q=0.01')
 ]
 SEARCH_PARAMS = {
