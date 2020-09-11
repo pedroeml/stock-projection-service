@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # JetBrains PyCharm's folder
+.run/
 .idea/
