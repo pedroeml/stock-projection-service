@@ -1,27 +1,43 @@
-from datetime import datetime
+import logging
+
+from gevent import monkey
+monkey.patch_all()
+
 from flask import Flask, jsonify, request
+from flask_pymongo import PyMongo
 from financial_indicators import load_indicators
 from historical_prices import load_prices
 from os import environ
 
+INDICATORS_LIST = None
+
 
 def reload_indicators():
-    indicators_data, today = dict(load_indicators()), datetime.strftime(datetime.today(), '%d')
-    indicators_data = {
+    global INDICATORS_LIST
+    logging.info('Indicators: loading...')
+
+    indicators_data = dict(load_indicators())
+    INDICATORS_LIST = {
         outer_k: {
             inner_k: float(inner_v) for inner_k, inner_v in outer_v.items()
         } for outer_k, outer_v in indicators_data.items()
     }
+    logging.info('Indicators: loaded!')
 
-    return indicators_data, today
 
+logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 app = Flask(__name__)
-indicators_list, day = reload_indicators()
+app.config['MONGO_URI'] = 'mongodb://' + environ['MONGODB_USERNAME'] + ':' + environ['MONGODB_PASSWORD'] + '@' + \
+                          environ['MONGODB_HOSTNAME'] + ':27017/' + environ['MONGODB_DATABASE']
+mongo = PyMongo(app)
+db = mongo.db
+
+reload_indicators()
 
 
 @app.route('/', methods=['GET'])
-def root():
+def index():
     return 'Stock Projection Service is running'
 
 
@@ -32,12 +48,9 @@ def page_not_found(e):
 
 @app.route('/indicators', methods=['GET'])
 def indicators():
-    global indicators_list, day
+    global INDICATORS_LIST
 
-    if day != datetime.strftime(datetime.today(), '%d'):
-        indicators_list, day = reload_indicators()
-
-    return jsonify(indicators_list)
+    return jsonify(INDICATORS_LIST) if INDICATORS_LIST else page_not_found(404)
 
 
 @app.route('/prices', methods=['GET'])
