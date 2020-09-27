@@ -4,6 +4,7 @@ from gevent import monkey
 monkey.patch_all()
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS, cross_origin
 from flask_pymongo import PyMongo
 from financial_indicators import load_indicators
 from historical_prices import load_prices
@@ -28,6 +29,8 @@ def reload_indicators():
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MONGO_URI'] = 'mongodb://' + environ['MONGODB_USERNAME'] + ':' + environ['MONGODB_PASSWORD'] + '@' + \
                           environ['MONGODB_HOSTNAME'] + ':27017/' + environ['MONGODB_DATABASE']
 mongo = PyMongo(app)
