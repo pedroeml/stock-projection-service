@@ -1,5 +1,8 @@
+from gzip import decompress
 from http import cookiejar
+from json import loads, dumps
 from os import environ
+from time import strftime, gmtime
 from urllib import request
 
 
@@ -17,19 +20,27 @@ def get_url(ticker):
 
 def build_headers(url):
     return [
-        ('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'),
+        ('Accept', 'application/json, text/javascript, */*; q=0.01'),
+        ('Accept-Encoding', 'gzip, deflate, br'),
         ('Referer', url),
         ('User-Agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36'),
     ]
 
 
-def load_prices(ticker):
+def parse_epoch_time(parsed_content):
+    return [[strftime('%Y-%m-%d', gmtime(unix_epoch_time/1000)), price] for [unix_epoch_time, price] in parsed_content]
+
+
+def load_prices(ticker, parse_json=True):
     url = get_url(ticker)
     cookie_jar = cookiejar.CookieJar()
     opener = request.build_opener(request.HTTPCookieProcessor(cookie_jar))
     opener.addheaders = build_headers(url)
 
     with opener.open(url) as link:
-        content = link.read().decode()
+        gzip_response = link.read()
+        binary_response = decompress(gzip_response)
+        parsed_content = loads(binary_response)
+        content = parse_epoch_time(parsed_content)
 
-    return content
+    return dumps(content) if parse_json else content
