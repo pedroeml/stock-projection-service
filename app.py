@@ -9,6 +9,7 @@ from flask_pymongo import PyMongo
 from financial_indicators import load_indicators
 from historical_prices import load_prices
 from os import environ
+from projection_prophet import project
 
 INDICATORS_LIST = None
 
@@ -62,6 +63,16 @@ def prices():
     ticker = query_parameters.get('ticker')
 
     return load_prices(ticker) if ticker else page_not_found(404)
+
+
+@app.route('/projections', methods=['GET'])
+def projections():
+    query_parameters = request.args
+    ticker = query_parameters.get('ticker')
+    days = query_parameters.get('days')
+    days_ago = query_parameters.get('daysAgo')
+
+    return project(ticker, int(days), int(days_ago)) if ticker and days else page_not_found(404)
 
 
 if __name__ == '__main__':
