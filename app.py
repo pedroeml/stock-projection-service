@@ -69,10 +69,8 @@ def prices():
 def projections():
     query_parameters = request.args
     ticker = query_parameters.get('ticker')
-    days = query_parameters.get('days')
-    days_ago = query_parameters.get('daysAgo')
 
-    return project(ticker, int(days), int(days_ago)) if ticker and days else page_not_found(404)
+    return project(ticker) if ticker else page_not_found(404)
 
 
 if __name__ == '__main__':
