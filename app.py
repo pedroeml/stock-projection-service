@@ -11,20 +11,37 @@ from historical_prices import load_prices
 from os import environ
 from projection_prophet import project
 
-INDICATORS_LIST = None
+INDICATORS_DICT = None
+WINNERS_DICT = None
 
 
-def reload_indicators():
-    global INDICATORS_LIST
+def download_indicators():
+    global INDICATORS_DICT
     logging.info('Indicators: loading...')
 
     indicators_data = dict(load_indicators())
-    INDICATORS_LIST = {
+    INDICATORS_DICT = {
         outer_k: {
             inner_k: float(inner_v) for inner_k, inner_v in outer_v.items()
         } for outer_k, outer_v in indicators_data.items()
     }
     logging.info('Indicators: loaded!')
+
+
+def is_winner(ticker_indicators):
+    return ticker_indicators['Div.Brut/Pat.'] < 1 and ticker_indicators['ROE'] >= 0 and ticker_indicators['ROIC'] >= 0 \
+           and ticker_indicators['DY'] > 0.06
+
+
+def load_winners():
+    global INDICATORS_DICT
+    global WINNERS_DICT
+    logging.info('Winners: loading...')
+
+    WINNERS_DICT = {
+        ticker: indicators for ticker, indicators in INDICATORS_DICT.items() if is_winner(indicators)
+    }
+    logging.info('Winners: loaded!')
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
@@ -37,7 +54,8 @@ app.config['MONGO_URI'] = 'mongodb://' + environ['MONGODB_USERNAME'] + ':' + env
 mongo = PyMongo(app)
 db = mongo.db
 
-reload_indicators()
+download_indicators()
+load_winners()
 
 
 @app.route('/', methods=['GET'])
@@ -52,9 +70,16 @@ def page_not_found(e):
 
 @app.route('/indicators', methods=['GET'])
 def indicators():
-    global INDICATORS_LIST
+    global INDICATORS_DICT
 
-    return jsonify(INDICATORS_LIST) if INDICATORS_LIST else page_not_found(404)
+    return jsonify(INDICATORS_DICT) if INDICATORS_DICT else page_not_found(404)
+
+
+@app.route('/winners', methods=['GET'])
+def winners():
+    global WINNERS_DICT
+
+    return jsonify(WINNERS_DICT) if WINNERS_DICT else page_not_found(404)
 
 
 @app.route('/prices', methods=['GET'])
