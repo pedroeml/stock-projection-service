@@ -76,8 +76,15 @@ def page_not_found(e):
 @app.route('/indicators', methods=['GET'])
 def indicators():
     global INDICATORS_DICT
+    query_parameters = request.args
+    ticker = query_parameters.get('ticker')
 
-    return jsonify(INDICATORS_DICT) if INDICATORS_DICT else page_not_found(404)
+    if INDICATORS_DICT:
+        if ticker in INDICATORS_DICT:
+            return jsonify(INDICATORS_DICT[ticker])
+        return jsonify(INDICATORS_DICT)
+    else:
+        return page_not_found(404)
 
 
 @app.route('/winners', methods=['GET'])
