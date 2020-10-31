@@ -39,7 +39,12 @@ def load_winners():
     logging.info('Winners: loading...')
 
     WINNERS_DICT = {
-        ticker: indicators for ticker, indicators in INDICATORS_DICT.items() if is_winner(indicators)
+        ticker: {
+            'Div.Brut/Pat.': indicators['Div.Brut/Pat.'],
+            'ROE': indicators['ROE'],
+            'ROIC': indicators['ROIC'],
+            'DY': indicators['DY']
+        } for ticker, indicators in INDICATORS_DICT.items() if is_winner(indicators)
     }
     logging.info('Winners: loaded!')
 
