@@ -11,12 +11,14 @@ from historical_prices import load_prices
 from os import environ
 from projection_prophet import project
 
+TICKERS_LIST = None
 INDICATORS_DICT = None
 WINNERS_DICT = None
 
 
 def download_indicators():
     global INDICATORS_DICT
+    global TICKERS_LIST
     logging.info('Indicators: loading...')
 
     indicators_data = dict(load_indicators())
@@ -25,6 +27,7 @@ def download_indicators():
             inner_k: float(inner_v) for inner_k, inner_v in outer_v.items()
         } for outer_k, outer_v in indicators_data.items()
     }
+    TICKERS_LIST = list(INDICATORS_DICT.keys())
     logging.info('Indicators: loaded!')
 
 
@@ -71,6 +74,13 @@ def index():
 @app.errorhandler(404)
 def page_not_found(e):
     return 'Not Found (404)', 404
+
+
+@app.route('/tickers', methods=['GET'])
+def tickers():
+    global TICKERS_LIST
+
+    return jsonify(TICKERS_LIST) if TICKERS_LIST else page_not_found(404)
 
 
 @app.route('/indicators', methods=['GET'])
