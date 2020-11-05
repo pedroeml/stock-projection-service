@@ -34,11 +34,22 @@ def find_ticker_index(ticker_prices, date_str):
     return -1
 
 
-def compute_mse(dicts):
+def mean_squared_error(dicts):
     ys = [d['y'] for d in dicts if 'y' in d.keys()]
     yhats = [d['yhat'] for d in dicts if 'y' in d.keys()]
 
     return np.square(np.subtract(ys, yhats)).mean()
+
+
+def root_mean_squared_error(dicts, mse=None):
+    return np.sqrt(mean_squared_error(dicts)) if mse is not None else np.sqrt(mse)
+
+
+def mean_absolute_percentage_error(dicts):
+    ys = [d['y'] for d in dicts if 'y' in d.keys()]
+    yhats = [d['yhat'] for d in dicts if 'y' in d.keys()]
+
+    return np.divide(np.absolute(np.subtract(ys, yhats)), ys).mean()
 
 
 def predict_future(ticker_prices, days_to_predict):
@@ -75,6 +86,8 @@ def build_response(forecast, ticker_prices, days):
 
 def compute_best_projection(ticker_prices, days_to_predict):
     best_mse = float('inf')
+    best_rmse = float('inf')
+    best_mape = float('inf')
     best_dicts = None
     best_days_ago = None
 
@@ -86,30 +99,35 @@ def compute_best_projection(ticker_prices, days_to_predict):
         sliced_ticker_prices = ticker_prices[-days_ago:]
         forecast = predict_future(sliced_ticker_prices, days_to_predict)
         dicts = build_response(forecast, sliced_ticker_prices, days)
-        mse = compute_mse(dicts)
+        mse = mean_squared_error(dicts)
 
         logging.info('Work week days ago: %d' % days_ago)
         logging.info('20%s work week days ago: %d' % ('%', int(days_ago * 0.2)))
         logging.info('Predicted days: %d' % days_to_predict)
-        logging.info('MSE: %.2f%s' % (mse * 100, '%'))
+        logging.info('MSE: %.4f' % mse)
 
         if mse < best_mse:
             best_dicts = dicts
             best_mse = mse
+            best_rmse = root_mean_squared_error(dicts, mse)
+            best_mape = mean_absolute_percentage_error(dicts)
             best_days_ago = days_ago
 
-    logging.info('Best fit result found using %d week days ago with MSE %.2f%s' % (best_days_ago, best_mse * 100, '%'))
+    logging.info('Best fit result found using %d week days ago with MSE %.4f, RMSE: %.4f, MAPE: %.4f%s' % (
+        best_days_ago, best_mse, best_rmse, best_mape * 100, '%'))
 
-    return best_days_ago, best_mse, best_dicts
+    return best_days_ago, best_mse, best_rmse, best_mape, best_dicts
 
 
 def project(ticker):
     ticker_prices = load_prices(ticker, parse_json=False)
     days_to_predict = 6
-    days_ago, mse, dicts = compute_best_projection(ticker_prices, days_to_predict)
+    days_ago, mse, rmse, mape, dicts = compute_best_projection(ticker_prices, days_to_predict)
 
     return dumps({
         'daysAgo': days_ago,
         'meanSquaredError': mse,
+        'rootMeanSquaredError': rmse,
+        'meanAbsolutePercentageError': mape,
         'items': dicts
     })
