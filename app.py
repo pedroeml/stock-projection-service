@@ -32,7 +32,7 @@ def download_indicators():
 
 
 def is_winner(ticker_indicators):
-    return ticker_indicators['Div.Brut/Pat.'] < 1 and ticker_indicators['ROE'] >= 0 and ticker_indicators['ROIC'] >= 0 \
+    return ticker_indicators['DivBrutPat'] < 1 and ticker_indicators['ROE'] >= 0 and ticker_indicators['ROIC'] >= 0 \
            and ticker_indicators['DY'] > 0.06
 
 
@@ -43,7 +43,7 @@ def load_winners():
 
     WINNERS_DICT = {
         ticker: {
-            'Div.Brut/Pat.': indicators['Div.Brut/Pat.'],
+            'DivBrutPat': indicators['DivBrutPat'],
             'ROE': indicators['ROE'],
             'ROIC': indicators['ROIC'],
             'DY': indicators['DY']
