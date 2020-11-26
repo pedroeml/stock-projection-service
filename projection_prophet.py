@@ -7,7 +7,7 @@ from fbprophet import Prophet
 from historical_prices import load_prices
 from json import dumps
 
-days_ago_presets = [20 * (i + 1) for i in range(5)]    # last 5 months, 20 by 20 work week days
+days_ago_presets = [20 * (i + 1) for i in range(4)]    # last 4 months, 20 by 20 work week days
 
 
 def convert_string_date(date_str):

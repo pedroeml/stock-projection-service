@@ -14,7 +14,7 @@ def get_url():
     if env == 'development':
         url = 'https://www.fundamentus.com.br/resultado.php'
     else:
-        phproxy = 'https://cin.ufpe.br/~bifm/tools/proxy/index.php'
+        phproxy = 'http://shortbushash.com/proxy.php'
         url = phproxy + '?q=https%3A%2F%2Fwww.fundamentus.com.br%2Fresultado.php&hl=180'
 
     return url
