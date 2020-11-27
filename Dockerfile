@@ -10,4 +10,4 @@ ADD *.py /var/www/
 
 EXPOSE 5000
 
-ENTRYPOINT [ "gunicorn", "app:app", "--bind", "0.0.0.0:5000", "--worker-class", "gevent", "--worker-connections", "100", "--preload" ]
+ENTRYPOINT [ "gunicorn", "app:app", "--bind", "0.0.0.0:5000", "--worker-class", "gevent", "--timeout", "60", "--worker-connections", "10", "--preload" ]
